@@ -2,6 +2,14 @@
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#8b0a0a">
+<meta name="application-name" content="Desidokan">
+<meta name="apple-mobile-web-app-title" content="Desidokan">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Desi Dokan – Bangladeshi, Indian &amp; Pakistani Food Store, Vilnius</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;600;700&family=Noto+Sans+Devanagari:wght@400;600;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -79,7 +87,7 @@ footer img{height:42px;margin-bottom:8px}footer a{color:#ffc99a;display:block;pa
 .ci{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--ln)}.ci img{width:56px;height:56px;object-fit:contain;background:#fbf1ec;border-radius:10px}.ci .q{margin:0;width:112px}
 .tabs{display:flex;gap:6px;margin:12px 0}.tabs button{flex:1;padding:10px;border-radius:10px;background:var(--soft);font-weight:600;font-size:13px}.tabs .on{background:var(--red);color:#fff}
 ol.s{list-style:none;padding:0;counter-reset:s}ol.s li{counter-increment:s;display:flex;gap:12px;padding:10px 0;align-items:flex-start;line-height:1.6}ol.s li:before{content:counter(s);flex:none;width:28px;height:28px;border-radius:50%;background:var(--or);color:#fff;font-weight:700;display:grid;place-items:center}
-nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);border-top:1px solid var(--ln);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}@media(min-width:900px){nav{display:none}body{padding-bottom:0}}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);border-top:1px solid var(--ln);display:flex;justify-content:space-around;padding:6px 0 calc(6px + env(safe-area-inset-bottom,0px))}@media(min-width:900px){nav{left:50%;right:auto;transform:translateX(-50%);width:460px;max-width:92vw;border:1px solid var(--ln);border-bottom:0;border-radius:20px 20px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.12)}nav button{padding:3px 22px}body{padding-bottom:84px}}
 nav button{display:flex;flex-direction:column;align-items:center;font-size:11px;padding:3px 14px;color:var(--mut);position:relative}nav button b{display:grid;place-items:center;font-size:23px;font-weight:400}nav .on{color:var(--red);font-weight:700}nav .n{position:absolute;top:-2px;right:6px;background:var(--or);color:#fff;border-radius:99px;font-size:10px;padding:0 5px}
 .lg{display:flex;gap:8px;flex-wrap:wrap}.lg button{padding:9px 16px;border-radius:99px;background:var(--soft);font-weight:600}.lg .on{background:var(--red);color:#fff}
 .acc{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:16px;margin-bottom:12px;line-height:1.8}.acc h3{margin-bottom:6px}
@@ -344,7 +352,7 @@ function list(){const q=qs.toLowerCase();let r=P.filter(p=>(cat==="all"||(cat===
 if(sort==="lo")r.sort((a,b)=>a.p-b.p);if(sort==="hi")r.sort((a,b)=>b.p-a.p);if(sort==="az")r.sort((a,b)=>a.n.localeCompare(b.n));return r}
 function home(){const mx=Math.max(...P.filter(p=>p.o).map(p=>Math.round(100-p.p/p.o*100)));
 return`<section class="hero"><div class="h1"><span class="bgs">${bgs(HERO)}</span><h1>${t("hero")}</h1><p>${t("herop")}</p><div class="btns"><button class="cta" data-c="all">${t("shop")}</button></div></div><div class="hs"><button class="sb1 fz" data-c="frozen"><span class="bgs">${bgs(FZ)}</span><span class="gl">${ic("fish")}</span><span class="tt">${cn("frozen")}</span></button><button class="sb1 off" data-c="off"><span class="gl">${ic("bolt")}</span><span class="tt">${t("off")}</span><span class="up">${t("upto")} −${mx}%</span><span class="cd">${cdH()}</span></button></div></section>
-<div class="trust"><div><i>${ic("check")}</i>${t("tr1")}</div><div><i>${ic("bag")}</i>${t("tr2")}</div><div><i>${ic("clock")}</i>${t("tr3")}</div></div>
+
 <h2 class="st">${t("sc")}</h2><div class="cgrid">${ORD.map(c=>`<button data-c="${c}"><img src="${IMG[REP[c]]}" alt="" loading="lazy">${cn(c)}</button>`).join("")}</div>
 <section class="flash"><div class="fh"><h2>${ic("bolt")}${t("fl")}</h2><span class="cd">${cdH()}</span><button data-c="off">${t("va")} ›</button></div><div class="rail">${P.filter(p=>p.o).map(card).join("")}</div></section>
 <div class="learn"><span class="lic">${ic("utensils")}</span><p>${t("lrn")}</p><button class="cta" data-c="all">${t("shop")}</button></div>
@@ -411,4 +419,5 @@ async function track(k,id){try{if(!DOC)return;let d={};const s=await DOC.get();i
 async function admin(){try{const u=await claude.use("user");if(!u||!(await u.isOwner()))return;const d=(await DOC.get()).data()||{},top=o=>Object.entries(o||{}).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([i,n])=>`${P[i].n}: <b>${n}</b>`).join("<br>")||"—";
 $("pan").className="pan";$("pan").innerHTML=`<button class="x" data-close>✕</button><h2>Owner dashboard</h2><div class="box"><b>Visits</b>${d.visits||0}</div><div class="box"><b>Most viewed</b>${top(d.views)}</div><div class="box"><b>Most added to cart</b>${top(d.adds)}</div>`;$("sh").classList.add("on")}catch(e){}}
 hyd();render();init();
-</script></body></html>
+</script><script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script>
+</body></html>
