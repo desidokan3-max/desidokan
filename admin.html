@@ -1,0 +1,85 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Desidokan Admin</title>
+<style>
+:root{--r:#8b0a0a;--b:#e8e0db;--m:#74655f}*{box-sizing:border-box}
+body{margin:0;font:14px/1.45 system-ui,sans-serif;background:#f3f1ef;color:#1f1411}
+header{background:var(--r);color:#fff;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;font-weight:800}
+main{max-width:760px;margin:auto;padding:12px}.c{background:#fff;border:1px solid var(--b);border-radius:14px;padding:12px;margin-bottom:10px}
+input,select{width:100%;padding:10px;border:1px solid var(--b);border-radius:10px;font:inherit;margin:3px 0 8px;background:#fff;color:inherit}
+label{font-size:12px;font-weight:600;color:var(--m)}button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:10px 14px;background:var(--r);color:#fff;cursor:pointer}
+button.g{background:#eee;color:#222}button.d{background:#c4300f}.tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+.tabs button{background:#fff;color:#222;border:1px solid var(--b);white-space:nowrap}.tabs .on{background:var(--r);color:#fff}
+.row{display:flex;gap:8px}.row>*{flex:1}.p{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--b)}
+.p img{width:44px;height:44px;object-fit:cover;border-radius:8px;background:#eee}.p div{flex:1;min-width:0}.p small{color:var(--m);display:block}.h{opacity:.45}
+.k{display:inline-block;font-size:11px;font-weight:700;padding:1px 9px;border-radius:99px;margin:3px 4px 0 0}.k.ok{background:#e6f6ee;color:#0b6b3d}.k.low{background:#fde8e1;color:#c4300f}.k.out{background:#e5e1de;color:#555}.k.nw{background:#ffe9b8;color:#7a4a00}
+.qb{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.qb button{padding:6px 11px;font-size:12px;background:#eee;color:#222}.qb button.on{background:#ffe9b8;color:#7a4a00}
+.fl{display:flex;gap:6px;overflow-x:auto;margin:0 0 10px}.fl button{padding:7px 12px;font-size:12.5px;background:#fff;color:#222;border:1px solid var(--b);white-space:nowrap}.fl .on{background:var(--r);color:#fff;border-color:var(--r)}
+#t{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:9}
+</style></head><body>
+<header><span>Desidokan Admin</span><span id="who"></span></header><main id="m"></main><div id="t"></div>
+<script>
+const DB="https://desidokan-default-rtdb.europe-west1.firebasedatabase.app",KEY="AIzaSyA52wyior1yg2E9bQd081oWgJ9nHisEEd4";
+const CATS={snacks:["Snacks & Chanachur","sn"],biscuits:["Biscuits & Toast","bi"],noodles:["Noodles, Semai & Soup","nd"],pickle:["Pickle (Achar)","pk"],spices:["Masala & Oil","ms"],rice:["Rice","ri"],drinks:["Tea & Drinks","te"],candy:["Candy","cd"],indian:["Indian Pantry","fl"],frozen:["Frozen Fish & Veg","ff"],pakistani:["Pakistani Products","pa"],muri:["Puffed Rice (Muri)","mu"],turkish:["Turkish & Azerbaijani","tk"]};
+const GC={sn:"snacks",bi:"biscuits",to:"biscuits",se:"noodles",nd:"noodles",pk:"pickle",ms:"spices",ol:"spices",ri:"rice",te:"drinks",en:"drinks",cd:"candy",fl:"indian",sp:"indian",ff:"frozen",fv:"frozen",fp:"frozen",ds:"frozen",pa:"pakistani",mu:"muri",tk:"turkish"};
+const $=s=>document.querySelector(s),v=s=>$(s).value.trim(),esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let S={},OLD=[],tok="",exp=0,cred=null,tab="prod",q="",ed=null,flt="all";
+const toast=m=>{const e=$("#t");e.textContent=m;e.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display="none",2600)};
+async function login(e,p){const r=await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key="+KEY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:e,password:p,returnSecureToken:true})});const j=await r.json();if(!r.ok)throw new Error((j.error&&j.error.message)||"Login failed");tok=j.idToken;exp=Date.now()+3300e3;cred=[e,p]}
+async function api(m,path,body){if(Date.now()>exp)await login(...cred);const r=await fetch(DB+path+".json?auth="+tok,{method:m,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)});if(!r.ok)throw new Error("Save failed ("+r.status+"). Check Firebase rules / login.");return r.json()}
+async function load(){S=(await fetch(DB+"/store.json",{cache:"no-store"}).then(r=>r.json()))||{}}
+async function loadOld(){const t=await fetch("index.html").then(r=>r.text()),m=t.match(/const RAW=`([\s\S]*?)`/);OLD=m?m[1].split("\n").map((l,i)=>{const[n,s,p,o,g]=l.split("|");return{id:i,n,s,p:+p,o:+o||0,g}}):[]}
+function img(f,max,q){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>{const i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement("canvas");c.width=i.width*k;c.height=i.height*k;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);ok(c.toDataURL("image/jpeg",q))};i.onerror=no;i.src=r.result};r.readAsDataURL(f)})}
+const run=f=>async(...a)=>{try{await f(...a)}catch(e){toast(e.message)}};
+const cn=k=>((S.cats||{})[k]||{}).en||(CATS[k]||[k])[0];
+const allCats=()=>[...Object.keys(CATS),...Object.keys(S.cats||{}).filter(k=>!CATS[k]).sort()];
+function loginUI(){$("#m").innerHTML=`<div class="c"><h3>Owner login</h3><label>Email</label><input id="le" type="email"><label>Password</label><input id="lp" type="password"><button id="lg" style="width:100%">Login</button></div>`;
+$("#lg").onclick=run(async()=>{await login(v("#le"),$("#lp").value);$("#who").textContent="✓ "+v("#le");toast("Loading…");await Promise.all([load(),loadOld()]);draw()})}
+function rows(){const E=S.edits||{},ql=q.toLowerCase();
+const a=OLD.map(o=>{const e=E[o.id]||{};return{t:"old",id:o.id,n:e.n||o.n,s:e.s??o.s,p:e.p??o.p,o:e.o??o.o,h:e.h,im:e.im,st:e.st,nw:e.nw,ed:!!E[o.id]}});
+const b=Object.entries(S.products||{}).sort().map(([k,d])=>({t:"new",k,...d,isn:1}));
+const hs=x=>x.st!=null&&x.st!=="",fo=x=>flt==="all"||(flt==="new"?x.nw:flt==="low"?hs(x)&&+x.st>0&&+x.st<=5:hs(x)&&+x.st===0);
+return[...b.reverse(),...a].filter(x=>fo(x)&&(!ql||(x.n+" "+x.s).toLowerCase().includes(ql)))}
+function form(){let cur={},t=ed.t,ck;
+if(t==="old"){const o=OLD[ed.id],e=(S.edits||{})[ed.id]||{};cur={n:e.n||o.n,s:e.s??o.s,p:e.p??o.p,o:e.o??o.o,h:e.h,d:e.d,im:e.im,st:e.st,nw:e.nw};const g=e.g||o.g;ck=CATS[g]?g:GC[g]}
+else if(ed.k){cur=S.products[ed.k];ck=Object.keys(CATS).find(k=>CATS[k][1]===cur.g)||cur.g}
+else ck="snacks";
+const sel=t==="old"?((S.edits||{})[ed.id]||{}).g?(Object.keys(CATS).find(k=>CATS[k][1]===S.edits[ed.id].g)||S.edits[ed.id].g):GC[OLD[ed.id].g]:ck;
+const go=allCats().map(k=>`<option value="${k}" ${k===sel?"selected":""}>${esc(cn(k))}</option>`).join("");
+return`<div class="c"><h3>${t==="old"?"Edit: "+esc(OLD[ed.id].n):ed.k?"Edit product":"New product"}</h3><label>Name</label><input id="fn" value="${esc(cur.n)}"><label>Size / weight</label><input id="fs" value="${esc(cur.s)}"><div class="row"><div><label>Price €</label><input id="fp" type="number" step="0.01" value="${cur.p??""}"></div><div><label>Old price € (offer, optional)</label><input id="fo" type="number" step="0.01" value="${cur.o||""}"></div></div>
+<label>Category</label><select id="fg">${go}</select><label>Description (optional, shown on product page)</label><input id="fd" value="${esc(cur.d)}"><label>Status</label><select id="fh"><option value="0">Visible</option><option value="1" ${cur.h?"selected":""}>Hidden (not shown on site)</option></select>
+<div class="row"><div><label>Stock (pieces left)</label><input id="fk" type="number" min="0" step="1" placeholder="empty = don't show" value="${cur.st??""}"></div><div><label>New arrival</label><select id="fw"><option value="0">No</option><option value="1" ${cur.nw?"selected":""}>Yes – show in New arrivals</option></select></div></div><small style="display:block;color:var(--m);margin:-4px 0 8px">Stock: 0 = Sold out (cannot be ordered). 1–5 = shows "Only N left". Empty = no stock text.</small><label>Photo ${t==="old"||ed.k?"(leave empty = keep current)":""}</label><input id="fi" type="file" accept="image/*">
+<div class="row"><button id="sv">Save</button><button class="g" id="cx">Cancel</button>${t==="old"&&(S.edits||{})[ed.id]?'<button class="d" id="rs">Reset to original</button>':""}</div></div>`}
+function catForm(){const k=ed.k,c=(S.cats||{})[k]||{};return`<div class="c"><h3>${k?"Edit category":"New category"}</h3><label>Name (English)</label><input id="ce" value="${esc(c.en||(k&&CATS[k]?CATS[k][0]:""))}"><label>Lietuvių (optional)</label><input id="cl" value="${esc(c.lt)}"><label>বাংলা (optional)</label><input id="cb" value="${esc(c.bn)}"><label>Status</label><select id="ch"><option value="0">Visible</option><option value="1" ${c.h?"selected":""}>Hidden</option></select><div class="row"><button id="cs">Save</button><button class="g" id="cx">Cancel</button></div></div>`}
+const qk=x=>x.t==="old"?"o"+x.id:"n"+x.k;
+const chips=x=>{const hs=x.st!=null&&x.st!=="",n=+x.st;return(hs?`<span class="k ${n<=0?"out":n<=5?"low":"ok"}">${n<=0?"Sold out":n<=5?"Only "+n+" left":n+" in stock"}</span>`:"")+(x.nw?'<span class="k nw">NEW</span>':"")};
+function draw(){const T=[["prod","Products"],["sl","Banners"],["cat","Categories"],["set","Site settings"]];
+let h=`<div class="tabs">${T.map(([k,n])=>`<button data-t="${k}" class="${tab===k?"on":""}">${n}</button>`).join("")}</div>`;
+if(tab==="prod"){h+=ed?form():`<div class="row"><input id="qq" placeholder="Search product…" value="${esc(q)}"><button id="nw" style="flex:none;margin:3px 0 8px">+ Add product</button></div><div class="fl">${[["all","All"],["new","New arrivals"],["low","Low stock (1–5)"],["out","Sold out"]].map(([k,n])=>`<button data-f="${k}" class="${flt===k?"on":""}">${n}</button>`).join("")}</div><div class="c">${rows().map(x=>`<div class="p ${x.h?"h":""}">${x.im?`<img src="${x.im}">`:"<img>"}<div><b>${esc(x.n)}</b>${x.isn?" 🆕":x.ed?" ✎":""}<small>${esc(x.s)} · €${x.p}${x.o?" (was €"+x.o+")":""}${x.h?" · hidden":""}</small>${chips(x)}<span class="qb"><button data-qs="${qk(x)}">📦 Stock</button><button data-qn="${qk(x)}" class="${x.nw?"on":""}">${x.nw?"✓ New arrival":"＋ New arrival"}</button></span></div><button class="g" data-e="${x.t==="old"?"o"+x.id:"n"+x.k}">Edit</button></div>`).join("")||"No products"}</div>`}
+if(tab==="sl")h+=`<div class="c"><h3>Add banner</h3><label>Image</label><input id="si" type="file" accept="image/*"><label>Title</label><input id="st"><label>Subtitle</label><input id="ss"><button id="sa">Add banner</button></div>`+Object.entries(S.slides||{}).sort().map(([k,d])=>`<div class="c p"><img src="${d.im}"><div><b>${esc(d.t)}</b><small>${esc(d.s)}</small></div><button class="d" data-ds="${k}">Delete</button></div>`).join("");
+if(tab==="cat")h+=ed?catForm():`<button id="nc" style="margin-bottom:10px">+ Add category</button><div class="c">${allCats().map(k=>{const c=(S.cats||{})[k]||{};return`<div class="p ${c.h?"h":""}"><div><b>${esc(cn(k))}</b><small>${CATS[k]?"built-in":"custom"}${c.h?" · hidden":""}</small></div><button class="g" data-ec="${k}">Edit</button></div>`}).join("")}</div>`;
+if(tab==="set"){const n=S.notice||{},g=S.cfg||{},H=g.hero||{},L=(l,n)=>`<label>Hero title (${n})</label><input id="ht${l}" value="${esc((H[l]||{}).t)}"><label>Hero subtitle (${n})</label><input id="hs${l}" value="${esc((H[l]||{}).s)}">`;
+const HH=S.hours||{},DAY=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],hr=DAY.map((d,i)=>{const x=Object.assign({c:0,o:"12:00",x:"00:00"},HH[i]||{});return`<div class="row" style="align-items:end"><div><label>${d}</label><select id="hc${i}"><option value="0">Open</option><option value="1" ${x.c?"selected":""}>Closed</option></select></div><div><label>Opens</label><input id="ho${i}" type="time" value="${x.o}"></div><div><label>Closes</label><input id="hx${i}" type="time" value="${x.x}"></div></div>`}).join("");
+h+=`<div class="c"><h3>Top notice</h3><label>Text (shown on every phone)</label><input id="nt" value="${esc(n.t)}"><label>Status</label><select id="no"><option value="1">On</option><option value="0" ${n.t&&!n.on?"selected":""}>Off</option></select></div>
+<div class="c"><h3>Contact (empty = keep default)</h3><label>Phone, e.g. +370 632 00730</label><input id="gp" value="${esc(g.phd)}"><label>Email</label><input id="gm" value="${esc(g.em)}"><label>Facebook link</label><input id="gf" value="${esc(g.fb)}"><label>Instagram link</label><input id="gi" value="${esc(g.ig)}"><label>WhatsApp group link</label><input id="gw" value="${esc(g.wa)}"></div>
+<div class="c"><h3>Home page text (empty = keep default)</h3>${L("en","English")}${L("lt","Lietuvių")}${L("bn","বাংলা")}</div><div class="c"><h3>Opening hours</h3><small style="display:block;color:var(--m);margin-bottom:8px">Default is 12:00–00:00 (12 pm to 12 am). Closes at 00:00 = midnight. Set a day to Closed for an off day.</small>${hr}</div><button id="ns" style="width:100%">Save settings</button>`}
+$("#m").innerHTML=h}
+document.addEventListener("click",run(async e=>{const b=e.target.closest("button");if(!b||!cred)return;const d=b.dataset,id=b.id;
+if(d.t){tab=d.t;ed=null;return draw()}
+if(d.f){flt=d.f;return draw()}
+if(d.qs||d.qn){const x=d.qs||d.qn,old=x[0]==="o",key=x.slice(1),path=old?"/store/edits/"+key:"/store/products/"+key,cur=(old?(S.edits||{})[key]:(S.products||{})[key])||{};
+if(d.qs){const r=prompt("Stock: how many pieces left?\n(0 = sold out, empty = don't show stock)",cur.st??"");if(r===null)return;const val=r.trim()===""?null:Math.max(0,Math.floor(+r)||0);await api("PATCH",path,{st:val});await load();draw();return toast("Stock saved ✓ – live on all phones")}
+await api("PATCH",path,{nw:cur.nw?null:Date.now()});await load();draw();return toast(cur.nw?"Removed from New arrivals":"Added to New arrivals ✓")}
+if(d.e){ed=d.e[0]==="o"?{t:"old",id:+d.e.slice(1)}:{t:"new",k:d.e.slice(1)};return draw()}
+if(d.ec){ed={k:d.ec};return draw()}
+if(id==="nw"){ed={t:"new"};return draw()}if(id==="nc"){ed={};return draw()}if(id==="cx"){ed=null;return draw()}
+if(id==="rs"){await api("DELETE","/store/edits/"+ed.id);await load();ed=null;draw();return toast("Reset ✓")}
+if(id==="sv"){const pv=ed.t==="old"?((S.edits||{})[ed.id]||{}):ed.k?(S.products[ed.k]||{}):{};const o={n:v("#fn"),s:v("#fs"),p:+v("#fp"),o:+v("#fo")||0,d:v("#fd"),h:+$("#fh").value,st:v("#fk")===""?null:Math.max(0,Math.floor(+v("#fk"))||0),nw:$("#fw").value==="1"?(pv.nw||Date.now()):null},f=$("#fi").files[0],ck=$("#fg").value,g=CATS[ck]?CATS[ck][1]:ck;if(!o.n||!(o.p>0))return toast("Name & price required");if(f)o.im=await img(f,420,.72);
+if(ed.t==="old"){const c=(S.edits||{})[ed.id]||{};if(!f&&c.im)o.im=c.im;if(ck!==GC[OLD[ed.id].g])o.g=g;await api("PUT","/store/edits/"+ed.id,o)}
+else{o.g=g;if(ed.k){const c=S.products[ed.k];if(!f&&c.im)o.im=c.im}await api("PUT","/store/products/"+(ed.k||"p"+Date.now()),o)}
+await load();ed=null;draw();return toast("Saved ✓ – live on all phones")}
+if(id==="sa"){const f=$("#si").files[0];if(!f)return toast("Choose image");await api("PUT","/store/slides/s"+Date.now(),{im:await img(f,900,.75),t:v("#st"),s:v("#ss")});await load();draw();return toast("Added ✓")}
+if(d.ds){await api("DELETE","/store/slides/"+d.ds);await load();draw();return toast("Deleted")}
+if(id==="cs"){if(!v("#ce"))return toast("Name required");await api("PUT","/store/cats/"+(ed.k||"c"+Date.now()),{en:v("#ce"),lt:v("#cl"),bn:v("#cb"),h:+$("#ch").value});await load();ed=null;draw();return toast("Saved ✓")}
+if(id==="ns"){const hero={};["en","lt","bn"].forEach(l=>{hero[l]={t:v("#ht"+l),s:v("#hs"+l)}});await api("PUT","/store/hours",[0,1,2,3,4,5,6].map(i=>({c:+$("#hc"+i).value,o:v("#ho"+i)||"12:00",x:v("#hx"+i)||"00:00"})));await api("PUT","/store/notice",{t:v("#nt"),on:+$("#no").value});await api("PUT","/store/cfg",{phd:v("#gp"),em:v("#gm"),fb:v("#gf"),ig:v("#gi"),wa:v("#gw"),hero});await load();draw();return toast("Saved ✓")}}));
+document.addEventListener("input",e=>{if(e.target.id==="qq"){q=e.target.value;const p=e.target.selectionStart;draw();const i=$("#qq");i.focus();i.setSelectionRange(p,p)}});
+loginUI();
+</script></body></html>
