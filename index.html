@@ -522,7 +522,7 @@ out('<p class="box">Loading…</p>');
 try{if(!TREND_DB)throw 0;const[a,b]=await Promise.all([fetch(TREND_DB+"/stats.json").then(r=>r.json()),fetch(TREND_DB+"/pop.json").then(r=>r.json())]);
 const S=a||{},D=S.days||{},td=D[dkey()]||{},pop=b||{};
 const days=[6,5,4,3,2,1,0].map(o=>{const k=dkey(o);return[k.slice(5),(D[k]||{}).v||0]}),mx=Math.max(1,...days.map(x=>x[1]));
-const top=f=>Object.entries(pop).filter(([i,o])=>P[i]&&o[f]).sort((x,y)=>y[1][f]-x[1][f]).slice(0,8).map(([i,o])=>`<div class="sr"><span>${esc(P[i].n)}</span><span><b>${o[f]}</b></span></div>`).join("")||"—";
+const top=f=>Object.entries(pop).filter(([i,o])=>P[i]&&o&&o[f]).sort((x,y)=>y[1][f]-x[1][f]).slice(0,8).map(([i,o])=>`<div class="sr"><span>${esc(P[i].n)}</span><span><b>${o[f]}</b></span></div>`).join("")||"—";
 const langs=Object.entries(S.lang||{}).sort((x,y)=>y[1]-x[1]).map(([k,v])=>k.toUpperCase()+" "+v).join(" · ")||"—";
 const tile=(n,l)=>`<div><b>${n||0}</b><span>${l}</span></div>`;
 out(`<div class="dg">${tile(td.v,"Visits today")}${tile(td.u,"Visitors today")}${tile(S.visits,"Total visits")}${tile(S.unique,"Total devices")}${tile(S.installs,"App installs")}${tile(td.app,"App opens today")}${tile(S.wa,"WhatsApp orders")}${tile(td.wa,"Orders today")}</div>
@@ -654,6 +654,6 @@ if(raw){try{ap(JSON.parse(raw))}catch(e){}}
 function sync(){fetch(TREND_DB+"/store.json",{cache:"no-store"}).then(r=>r.ok?r.json().then(x=>x||{}):null).then(S=>{if(!S)return;const s=JSON.stringify(S);if(s===raw)return;raw=s;try{localStorage.setItem(CK,s)}catch(e){}ap(S);render();const t=$("trend");if(t)t.innerHTML=trendInner()}).catch(()=>{})}
 window.ddSync=sync;sync();document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 })();
-hyd();render();init();loadTrend();countVisit();if(location.hash==="#admin")adminX();
+hyd();try{render()}catch(e){console.error(e)}init();loadTrend();countVisit();if(location.hash==="#admin")adminX();
 </script><script>if("serviceWorker"in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})})}</script>
 </body></html>
